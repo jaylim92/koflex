@@ -2,7 +2,7 @@ import { useQuery } from "react-query";
 import { getMovies, IGetMoviesResult } from "../api";
 import styled from "styled-components";
 import { makeImgPath } from "../utilites";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useScroll } from "framer-motion";
 import { useState } from "react";
 import { useMatch, useNavigate } from "react-router-dom";
 
@@ -18,14 +18,14 @@ const Loader = styled.div`
   align-items: center;
 `;
 
-const Banner = styled.div<{ bgPhoto: string }>`
+const Banner = styled.div<{ bgphoto: string }>`
   display: flex;
   height: 100vh;
   flex-direction: column;
   justify-content: center;
   padding: 60px;
   background-image: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 1)),
-    url(${(props) => props.bgPhoto});
+    url(${(props) => props.bgphoto});
   background-size: cover;
   background-position: center center;
 `;
@@ -54,11 +54,11 @@ const Row = styled(motion.div)`
   width: 100%;
 `;
 
-const Box = styled(motion.div)<{ bgPhoto: string }>`
+const Box = styled(motion.div)<{ bgphoto: string }>`
   height: 200px;
   border-radius: 10px;
   background-color: white;
-  background-image: url(${(props) => props.bgPhoto});
+  background-image: url(${(props) => props.bgphoto});
   background-size: cover;
   cursor: pointer;
   &:first-child {
@@ -81,6 +81,25 @@ const Info = styled(motion.div)`
     font-size: 18px;
     font-weight: 600;
   }
+`;
+
+const Overlay = styled(motion.div)`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+`;
+
+const MovieDetail = styled(motion.div)`
+  position: absolute;
+  width: 40vw;
+  height: 80vh;
+  right: 0;
+  left: 0;
+  margin: 0 auto;
 `;
 
 const rowVariants = {
@@ -124,6 +143,7 @@ function Home() {
   const [leaving, setLeaving] = useState(false);
   const navigate = useNavigate();
   const movieMatch = useMatch("/movies/:movieId");
+  const { scrollY } = useScroll();
 
   const increaseIndex = () => {
     if (data) {
@@ -138,6 +158,7 @@ function Home() {
   const onBoxClick = (movieId: number) => {
     navigate(`movies/${movieId}`);
   };
+  const onOverlayClick = () => navigate(-1);
 
   return (
     <Wrapper>
@@ -146,7 +167,7 @@ function Home() {
       ) : (
         <>
           <Banner
-            bgPhoto={makeImgPath(data?.results[0].backdrop_path || "")}
+            bgphoto={makeImgPath(data?.results[0].backdrop_path || "")}
             onClick={increaseIndex}
           >
             <Title>{data?.results[0].title}</Title>
@@ -170,7 +191,7 @@ function Home() {
                       onClick={() => onBoxClick(movie.id)}
                       layoutId={movie.id + ""}
                       key={movie.id}
-                      bgPhoto={makeImgPath(
+                      bgphoto={makeImgPath(
                         movie.backdrop_path || movie.poster_path,
                         "w500"
                       )}
@@ -188,19 +209,17 @@ function Home() {
           </Slider>
           <AnimatePresence>
             {movieMatch ? (
-              <motion.div
-                layoutId={movieMatch.params.movieId}
-                style={{
-                  position: "absolute",
-                  width: "40vw",
-                  height: "80vh",
-                  backgroundColor: "red",
-                  top: 50,
-                  right: 0,
-                  left: 0,
-                  margin: "0 auto",
-                }}
-              />
+              <>
+                <Overlay
+                  onClick={onOverlayClick}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                />
+                <MovieDetail
+                  layoutId={movieMatch.params.movieId}
+                  style={{ top: scrollY.get() + 100 }}
+                />
+              </>
             ) : null}
           </AnimatePresence>
         </>
