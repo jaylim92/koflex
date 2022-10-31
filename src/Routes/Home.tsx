@@ -100,6 +100,35 @@ const MovieDetail = styled(motion.div)`
   right: 0;
   left: 0;
   margin: 0 auto;
+  background-color: ${(props) => props.theme.black.lighter};
+  border-radius: 15px;
+  overflow: hidden;
+  position: absolute;
+`;
+
+const MovieDetailTitle = styled.div`
+  color: ${(props) => props.theme.white.lighter};
+  font-size: 38px;
+  font-weight: 600;
+  position: relative;
+  top: -50px;
+  left: 20px;
+`;
+
+const MovieDetailImg = styled.div`
+  width: 100%;
+  height: 400px;
+  background-position: center center;
+  background-size: cover;
+`;
+
+const MovieDetailOverview = styled.p`
+  align-items: center;
+  padding: 20px;
+  font-weight: 500;
+  color: ${(props) => props.theme.white.lighter};
+  position: relative;
+  top: -30px;
 `;
 
 const rowVariants = {
@@ -159,7 +188,10 @@ function Home() {
     navigate(`movies/${movieId}`);
   };
   const onOverlayClick = () => navigate(-1);
-
+  const clickedMovie =
+    movieMatch?.params.movieId &&
+    data?.results.find((movie) => movie.id + "" === movieMatch.params.movieId);
+  console.log(clickedMovie);
   return (
     <Wrapper>
       {isLoading ? (
@@ -218,7 +250,24 @@ function Home() {
                 <MovieDetail
                   layoutId={movieMatch.params.movieId}
                   style={{ top: scrollY.get() + 100 }}
-                />
+                >
+                  {clickedMovie && (
+                    <>
+                      <MovieDetailImg
+                        style={{
+                          backgroundImage: `linear-gradient(to top, black, transparent), url(${makeImgPath(
+                            clickedMovie.backdrop_path,
+                            "w500"
+                          )})`,
+                        }}
+                      ></MovieDetailImg>
+                      <MovieDetailTitle>{clickedMovie.title}</MovieDetailTitle>
+                      <MovieDetailOverview>
+                        {clickedMovie.overview}
+                      </MovieDetailOverview>
+                    </>
+                  )}
+                </MovieDetail>
               </>
             ) : null}
           </AnimatePresence>
